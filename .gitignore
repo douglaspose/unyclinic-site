@@ -1,0 +1,30 @@
+# dependências
+node_modules
+.pnp
+.pnp.js
+
+# build
+.next
+out
+build
+dist
+
+# ambiente
+.env*
+!.env.example
+
+# tipos gerados
+next-env.d.ts
+
+# sistema operacional / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea
+
+# logs
+*.log
+npm-debug.log*
+
+# ferramentas locais
+.claude

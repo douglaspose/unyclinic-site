@@ -17,14 +17,8 @@ npm run build   # build de produção (100% estático)
 FAQ e links de menu saem daí — nenhum componente precisa ser editado para
 ajustar conteúdo.
 
-Itens marcados com `[REVISAR]` nesse arquivo precisam da sua confirmação antes
-de publicar:
-
-| Item | Por quê |
-|---|---|
-| `brand.email` | O e-mail veio mascarado na extração do site atual |
-
-As respostas do FAQ foram confirmadas e já estão com o texto oficial.
+Todo o conteúdo foi confirmado com o cliente: copy, planos, módulos, FAQ e
+contato. Não há pendências de revisão.
 
 Cores, escala tipográfica, curvas de animação e espaçamento ficam nos tokens
 no topo de `src/app/globals.css`.

@@ -3,14 +3,12 @@
    Todo o texto do site vive aqui. Para ajustar copy, preço ou módulo,
    edite este arquivo — nenhum componente precisa ser tocado.
 
-   Marcações:
-   [REVISAR] = texto redigido por inferência, confirme antes de publicar.
+   Todo o conteúdo abaixo foi confirmado com o cliente.
    ========================================================================== */
 
 export const brand = {
   name: "Unyclinic",
   tagline: "Sistema de gestão para clínicas",
-  // [REVISAR] e-mail veio mascarado na extração do site atual
   email: "contato@unyclinic.com.br",
   legal:
     "Sistema de gestão para clínicas médicas, odontológicas, estéticas e de fisioterapia.",

@@ -93,78 +93,64 @@ e regenere os ícones.
 
 ## Deploy na VPS
 
-O site é um app Next.js: precisa de um processo Node rodando, não é HTML
-estático que se copia para uma pasta.
+O build gera a pasta `out/` com HTML, CSS, JS e imagens prontos. **Nenhum
+processo Node roda em produção** — o Caddy serve os arquivos direto.
 
 ### Contexto importante
 
-O sistema já ocupa o apex `unyclinic.com.br` — ele serve `/login`,
+O sistema já ocupa o apex `unyclinic.com.br`: ele serve `/login`,
 `/dashboard`, `/api/health` e a landing atual como rota `/landing`, com
 middleware roteando por hostname. Os subdomínios das clínicas dependem de um
 registro DNS wildcard, tudo atrás do Cloudflare e de um Caddy.
 
-Portanto este site entra como **um segundo serviço na mesma VPS**, em outra
-porta, e é o Caddy que decide quem responde no apex. **Nenhum registro DNS
-precisa mudar** — em particular, o wildcard `*.unyclinic.com.br` deve ficar
-exatamente como está, ou as clínicas perdem acesso.
+Este site entra como **arquivos estáticos na mesma VPS**, e é o Caddy que
+decide o que responde no apex. **Nenhum registro DNS precisa mudar** — em
+particular, o wildcard `*.unyclinic.com.br` deve ficar exatamente como está,
+ou as clínicas perdem acesso.
 
-### Build e execução
+### Build
 
 ```bash
 npm ci
 npm run build
 ```
 
-Requer Node 22. O build gera um servidor auto-contido em `.next/standalone`.
+Requer Node 22. Saída: `out/`, cerca de 2 MB em 47 arquivos.
 
-Para rodar, copie para a VPS estas três coisas e nada mais:
+Use `npm run build` e não `npx next build` direto: existe um passo pós-build
+que renomeia a imagem de compartilhamento. O Next a exporta sem extensão, e
+servida assim ela chega como `application/octet-stream` — o que faz WhatsApp e
+LinkedIn descartarem o preview do link.
 
-```
-.next/standalone/     → a aplicação e as dependências que ela realmente usa
-.next/static/         → para .next/standalone/.next/static/
-public/               → para .next/standalone/public/
-```
-
-E suba o processo:
+### Publicar
 
 ```bash
-PORT=3100 node server.js
-```
-
-A porta é 3100 de propósito: 3000 provavelmente já está com o sistema.
-
-### systemd
-
-```ini
-[Unit]
-Description=Unyclinic site institucional
-After=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/var/www/unyclinic-site
-Environment=NODE_ENV=production
-Environment=PORT=3100
-ExecStart=/usr/bin/node server.js
-Restart=always
-User=www-data
-
-[Install]
-WantedBy=multi-user.target
+rsync -av --delete out/ usuario@vps:/var/www/unyclinic-site/
 ```
 
 ### Caddy
 
-Com o site respondendo no apex e o sistema mantendo o resto:
-
 ```caddyfile
 unyclinic.com.br, www.unyclinic.com.br {
-    # rotas do sistema continuam no app atual
+    encode gzip zstd
+
+    # as rotas do sistema continuam no app atual
     @sistema path /login* /dashboard* /api/*
     reverse_proxy @sistema localhost:3000
 
-    # todo o restante do apex é o site institucional
-    reverse_proxy localhost:3100
+    # todo o restante do apex é o site institucional, servido como arquivo
+    root * /var/www/unyclinic-site
+    file_server
+
+    # os arquivos em _next/static têm hash no nome: cache longo é seguro
+    @imutavel path /_next/static/*
+    header @imutavel Cache-Control "public, max-age=31536000, immutable"
+
+    handle_errors {
+        @404 expression {err.status_code} == 404
+        rewrite @404 /404.html
+        file_server
+    }
 }
 
 *.unyclinic.com.br {
@@ -172,5 +158,12 @@ unyclinic.com.br, www.unyclinic.com.br {
 }
 ```
 
-A ordem importa: o bloco `@sistema` precisa vir antes do `reverse_proxy`
-genérico, senão o site institucional captura `/login` também.
+A ordem importa: o bloco `@sistema` precisa vir antes do `file_server`, senão
+o site institucional captura `/login` também.
+
+### Se um dia precisar de backend
+
+Formulário com envio pelo servidor, área logada ou API passariam a exigir um
+processo Node. Nesse caso, troque `output: "export"` por `output: "standalone"`
+em `next.config.mjs`: o build passa a gerar `.next/standalone/server.js`, que
+roda com `PORT=3100 node server.js` atrás de um `reverse_proxy`.

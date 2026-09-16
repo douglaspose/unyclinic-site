@@ -7,7 +7,9 @@ import { join } from "node:path";
  * buscar `/marca/...`. Os arquivos entram embutidos como data URI.
  */
 async function comoDataUri(caminho: string) {
-  const bytes = await readFile(join(process.cwd(), "public/marca", caminho));
+  // Lê os PNG originais em assets/, não os WebP reduzidos de public/: aqui
+  // a imagem é desenhada a 1200x630 e precisa da resolução cheia.
+  const bytes = await readFile(join(process.cwd(), "assets/marca", caminho));
   return `data:image/png;base64,${bytes.toString("base64")}`;
 }
 
@@ -16,6 +18,8 @@ async function comoDataUri(caminho: string) {
  * É o que aparece quando alguém cola o link no WhatsApp ou no LinkedIn —
  * sem ela, o preview fica com um retângulo vazio.
  */
+export const dynamic = "force-static";
+
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Unyclinic — Sistema de gestão para clínicas";

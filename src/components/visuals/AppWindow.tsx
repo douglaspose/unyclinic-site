@@ -60,19 +60,19 @@ export function Sidebar({ active }: { active: string }) {
         <div className="mb-3 flex items-center gap-1.5 px-2 py-1.5">
           {/* A própria marca, não um substituto: é o menu do sistema real */}
           <Image
-            src="/marca/unyclinic-icon.png"
+            src="/marca/icon.webp"
             alt=""
             aria-hidden="true"
-            width={282}
-            height={301}
+            width={96}
+            height={102}
             className="h-4 w-auto"
           />
           <Image
-            src="/marca/unyclinic-wordmark.png"
+            src="/marca/wordmark.webp"
             alt=""
             aria-hidden="true"
-            width={769}
-            height={170}
+            width={258}
+            height={57}
             className="h-[9px] w-auto"
           />
         </div>
